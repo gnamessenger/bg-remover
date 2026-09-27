@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배경 지우개 - 무료 이미지 배경 제거</title>
+<meta name="description" content="사진을 올리면 AI가 자동으로 배경을 지워드려요. 100% 무료, 사진은 서버로 전송되지 않고 내 브라우저에서만 처리됩니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple: #7D55C7;
+    --purple-dark: #6441A8;
+    --purple-light: #E8E2F5;
+    --ink: #2B2440;
+    --muted: #6E6882;
+    --line: #E6E1EF;
+    --bg: #FFFFFF;
+    --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    min-height: 100vh;
+  }
+  a { color: var(--purple); }
+
+  /* 헤더 */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; border-bottom: 1px solid var(--line);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 22px; text-decoration: none; color: var(--ink); }
+  .logo-mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--purple), #A68AE0);
+    display: grid; place-items: center; color: #fff; font-size: 18px;
+  }
+  .logo span { color: var(--purple); }
+  .badge-privacy { font-size: 13px; color: var(--muted); }
+
+  /* 메인 */
+  main { max-width: 1120px; margin: 0 auto; padding: 56px 24px 80px; }
+
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .hero h1 { font-size: 52px; line-height: 1.2; font-weight: 900; letter-spacing: -1.5px; }
+  .hero h1 em { font-style: normal; color: var(--purple); }
+  .hero p.sub { margin-top: 18px; font-size: 20px; font-weight: 500; }
+  .pill { display: inline-block; background: var(--purple); color: #fff; padding: 2px 12px; border-radius: 999px; font-weight: 700; }
+  .hero ul { margin-top: 28px; list-style: none; display: grid; gap: 10px; color: var(--muted); font-size: 15px; }
+  .hero ul li::before { content: "✓"; color: var(--purple); font-weight: 900; margin-right: 8px; }
+
+  .drop {
+    background: var(--card);
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(125, 85, 199, 0.15);
+    padding: 64px 32px;
+    text-align: center;
+    border: 2px dashed transparent;
+    transition: border-color .2s, background .2s;
+  }
+  .drop.over { border-color: var(--purple); background: var(--purple-light); }
+  .btn {
+    display: inline-block; border: 0; cursor: pointer;
+    background: var(--purple); color: #fff;
+    font-family: inherit; font-size: 20px; font-weight: 700;
+    padding: 16px 40px; border-radius: 999px;
+    transition: background .2s, transform .1s;
+  }
+  .btn:hover { background: var(--purple-dark); }
+  .btn:active { transform: scale(.98); }
+  .btn.ghost { background: var(--purple-light); color: var(--purple); }
+  .btn.ghost:hover { background: #DCD2F0; }
+  .btn.small { font-size: 15px; padding: 11px 22px; }
+  .drop .or { margin-top: 22px; font-size: 18px; font-weight: 700; }
+  .drop .hint { margin-top: 6px; font-size: 13px; color: var(--muted); }
+  .url-row { margin-top: 18px; display: none; gap: 8px; }
+  .url-row.show { display: flex; }
+  .url-row input {
+    flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px;
+    font-family: inherit; font-size: 14px;
+  }
+  .linkish { background: none; border: 0; color: var(--purple); text-decoration: underline; cursor: pointer; font: inherit; }
+
+  /* 처리 중 */
+  .work { display: none; margin-top: 8px; }
+  .work.show { display: block; }
+  .progress-wrap { max-width: 520px; margin: 0 auto; text-align: center; padding: 60px 0; }
+  .spinner {
+    width: 54px; height: 54px; margin: 0 auto 20px;
+    border: 5px solid var(--purple-light); border-top-color: var(--purple);
+    border-radius: 50%; animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .bar { height: 8px; background: var(--purple-light); border-radius: 99px; overflow: hidden; margin-top: 14px; }
+  .bar > div { height: 100%; width: 0; background: var(--purple); transition: width .2s; }
+  .progress-text { font-weight: 700; }
+  .progress-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  /* 결과 */
+  .result { display: none; grid-template-columns: 1fr 300px; gap: 32px; align-items: start; }
+  .result.show { display: grid; }
+  .stage {
+    position: relative; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(43, 36, 64, .12);
+    background-color: #fff;
+    background-image:
+      linear-gradient(45deg, #E9E9EE 25%, transparent 25%),
+      linear-gradient(-45deg, #E9E9EE 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #E9E9EE 75%),
+      linear-gradient(-45deg, transparent 75%, #E9E9EE 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    user-select: none;
+  }
+  .stage img { display: block; width: 100%; height: auto; }
+  .stage .layer { position: absolute; inset: 0; }
+  .stage .layer img { width: 100%; height: 100%; object-fit: contain; }
+  .stage .orig { clip-path: inset(0 calc(100% - var(--pos, 0%)) 0 0); }
+  .divider {
+    position: absolute; top: 0; bottom: 0; left: var(--pos, 0%); width: 3px; margin-left: -1.5px;
+    background: #fff; box-shadow: 0 0 6px rgba(0,0,0,.35); pointer-events: none;
+    display: none;
+  }
+  .stage.comparing .divider { display: block; }
+  .divider::after {
+    content: "◀ ▶"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #fff; color: var(--purple); font-size: 11px; font-weight: 900; letter-spacing: -1px;
+    padding: 8px 8px; border-radius: 99px; box-shadow: 0 2px 8px rgba(0,0,0,.25); white-space: nowrap;
+  }
+  .compare-label { font-size: 13px; color: var(--muted); margin-top: 10px; text-align: center; }
+
+  .panel {
+    background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 24px;
+    display: grid; gap: 22px; position: sticky; top: 20px;
+  }
+  .panel h3 { font-size: 15px; margin-bottom: 10px; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sw {
+    width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+    border: 2px solid var(--line); position: relative;
+  }
+  .sw.active { border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-light); }
+  .sw.trans {
+    background-color: #fff;
+    background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%);
+    background-size: 10px 10px; background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+  }
+  .sw.custom { display: grid; place-items: center; font-size: 18px; color: var(--muted); background: #fff; overflow: hidden; }
+  .sw.custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .panel .btn { width: 100%; }
+  .panel .actions { display: grid; gap: 10px; }
+  .meta { font-size: 12px; color: var(--muted); }
+
+  .error {
+    display: none; margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+    background: #FDECEC; color: #A23232; font-size: 14px;
+  }
+  .error.show { display: block; }
+
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding: 24px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 860px) {
+    main { padding: 32px 16px 60px; }
+    .hero { grid-template-columns: 1fr; gap: 32px; }
+    .hero h1 { font-size: 36px; }
+    .drop { padding: 44px 20px; }
+    .result { grid-template-columns: 1fr; }
+    .panel { position: static; }
+    .badge-privacy { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#" onclick="location.reload();return false;">
+    <div class="logo-mark">✂</div>
+    배경<span>지우개</span>
+  </a>
+  <div class="badge-privacy">🔒 사진은 서버로 전송되지 않아요</div>
+</header>
+
+<main>
+  <!-- 1) 업로드 화면 -->
+  <section class="hero" id="hero">
+    <div>
+      <h1>사진 배경,<br><em>한 번에</em> 지우세요</h1>
+      <p class="sub">100% 자동 · <span class="pill">무료</span></p>
+      <ul>
+        <li>AI가 사람·상품·동물을 자동으로 인식</li>
+        <li>투명 PNG 또는 원하는 배경색으로 저장</li>
+        <li>사진이 내 컴퓨터 밖으로 나가지 않아 안전</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="drop" id="drop">
+        <button class="btn" id="pickBtn">이미지 업로드</button>
+        <input type="file" id="file" accept="image/*" hidden>
+        <p class="or">또는 파일을 여기에 끌어다 놓기</p>
+        <p class="hint">Ctrl+V로 붙여넣기 또는 <button class="linkish" id="urlToggle">URL</button> · JPG, PNG, WEBP</p>
+        <div class="url-row" id="urlRow">
+          <input type="url" id="urlInput" placeholder="https://... 이미지 주소">
+          <button class="btn small" id="urlGo">가져오기</button>
+        </div>
+      </div>
+      <div class="error" id="error"></div>
+    </div>
+  </section>
+
+  <!-- 2) 처리 중 -->
+  <section class="work" id="work">
+    <div class="progress-wrap">
+      <div class="spinner"></div>
+      <p class="progress-text" id="progText">AI 모델 준비 중…</p>
+      <div class="bar"><div id="progBar"></div></div>
+      <p class="progress-sub" id="progSub">처음 한 번은 AI 모델(약 40MB)을 내려받느라 조금 걸려요. 다음부터는 바로 됩니다.</p>
+    </div>
+  </section>
+
+  <!-- 3) 결과 -->
+  <section class="result" id="result">
+    <div>
+      <div class="stage" id="stage">
+        <img id="sizer" alt="">
+        <div class="layer" id="cutLayer"><img id="cutImg" alt="배경 제거 결과"></div>
+        <div class="layer orig"><img id="origImg" alt="원본"></div>
+        <div class="divider"></div>
+      </div>
+      <p class="compare-label">이미지 위에서 마우스를 좌우로 움직이면 원본과 비교할 수 있어요</p>
+    </div>
+
+    <aside class="panel">
+      <div>
+        <h3>배경</h3>
+        <div class="swatches" id="swatches">
+          <div class="sw trans active" data-color="" title="투명"></div>
+          <div class="sw" data-color="#FFFFFF" style="background:#FFFFFF" title="흰색"></div>
+          <div class="sw" data-color="#000000" style="background:#000000" title="검정"></div>
+          <div class="sw" data-color="#E8E2F5" style="background:#E8E2F5" title="연보라"></div>
+          <div class="sw" data-color="#7D55C7" style="background:#7D55C7" title="보라"></div>
+          <div class="sw" data-color="#F4E6D4" style="background:#F4E6D4" title="베이지"></div>
+          <div class="sw" data-color="#D6E8F7" style="background:#D6E8F7" title="하늘"></div>
+          <label class="sw custom" title="직접 고르기">+<input type="color" id="customColor" value="#FFD6E0"></label>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="downloadBtn">다운로드</button>
+        <button class="btn ghost small" id="againBtn">다른 사진 하기</button>
+      </div>
+      <p class="meta" id="meta"></p>
+    </aside>
+  </section>
+</main>
+
+<footer>배경지우개 · 사진은 브라우저 안에서만 처리되며 어디에도 저장되지 않습니다.</footer>
+
+<script type="module">
+  import { removeBackground } from "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1/+esm";
+
+  const $ = (id) => document.getElementById(id);
+  const hero = $("hero"), work = $("work"), result = $("result");
+  const fileInput = $("file"), drop = $("drop"), errorBox = $("error");
+
+  let cutBlob = null;       // 배경 제거된 PNG
+  let cutBitmap = null;     // 다운로드 합성용
+  let bgColor = "";         // "" = 투명
+  let baseName = "image";
+  let busy = false;
+
+  function show(which) {
+    hero.style.display = which === "hero" ? "" : "none";
+    work.classList.toggle("show", which === "work");
+    result.classList.toggle("show", which === "result");
+  }
+  function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.classList.add("show");
+  }
+
+  // ---------- 입력: 버튼 / 드래그 / 붙여넣기 / URL ----------
+  $("pickBtn").onclick = () => fileInput.click();
+  fileInput.onchange = () => fileInput.files[0] && handle(fileInput.files[0]);
+
+  ["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.add("over");
+  }));
+  ["dragleave", "drop"].forEach(ev => document.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.remove("over");
+  }));
+  document.addEventListener("drop", e => {
+    const f = [...(e.dataTransfer?.files || [])].find(f => f.type.startsWith("image/"));
+    if (f) handle(f);
+  });
+  document.addEventListener("paste", e => {
+    const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+    if (item) handle(item.getAsFile());
+  });
+
+  $("urlToggle").onclick = () => { $("urlRow").classList.toggle("show"); $("urlInput").focus(); };
+  $("urlGo").onclick = async () => {
+    const url = $("urlInput").value.trim();
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      if (!blob.type.startsWith("image/")) throw new Error();
+      baseName = url.split("/").pop().split("?")[0].replace(/\.[^.]+$/, "") || "image";
+      handle(blob, true);
+    } catch {
+      showError("이 주소의 이미지는 가져올 수 없어요. (사이트가 외부 접근을 막은 경우가 많아요) 이미지를 저장한 뒤 업로드해 주세요.");
+    }
+  };
+
+  // ---------- 처리 ----------
+  async function handle(fileOrBlob, keepName = false) {
+    if (busy) return;
+    busy = true;
+    errorBox.classList.remove("show");
+    if (!keepName && fileOrBlob.name) baseName = fileOrBlob.name.replace(/\.[^.]+$/, "");
+
+    const origURL = URL.createObjectURL(fileOrBlob);
+    show("work");
+    setProgress("AI 모델 준비 중…", 0);
+
+    try {
+      cutBlob = await removeBackground(fileOrBlob, {
+        output: { format: "image/png", quality: 1 },
+        progress: (key, current, total) => {
+          if (key.startsWith("fetch")) {
+            setProgress("AI 모델 내려받는 중…", total ? current / total : 0);
+          } else if (key.startsWith("compute")) {
+            setProgress("배경 지우는 중…", total ? current / total : 0.5);
+          }
+        },
+      });
+
+      const cutURL = URL.createObjectURL(cutBlob);
+      cutBitmap = await createImageBitmap(cutBlob);
+      $("sizer").src = cutURL;
+      $("cutImg").src = cutURL;
+      $("origImg").src = origURL;
+      $("meta").textContent = `${cutBitmap.width} × ${cutBitmap.height}px · PNG`;
+      applyBg();
+      show("result");
+    } catch (err) {
+      console.error(err);
+      show("hero");
+      showError("배경 제거에 실패했어요. 다른 사진으로 시도하거나, 크롬·엣지 최신 버전에서 열어 주세요.");
+    } finally {
+      busy = false;
+      fileInput.value = "";
+    }
+  }
+
+  function setProgress(text, ratio) {
+    $("progText").textContent = text;
+    $("progBar").style.width = Math.round(Math.min(1, Math.max(0, ratio)) * 100) + "%";
+  }
+
+  // ---------- 원본 비교 슬라이더 ----------
+  const stage = $("stage");
+  function setPos(clientX) {
+    const r = stage.getBoundingClientRect();
+    const p = Math.min(100, Math.max(0, ((clientX - r.left) / r.width) * 100));
+    stage.style.setProperty("--pos", p + "%");
+  }
+  stage.addEventListener("pointermove", e => { stage.classList.add("comparing"); setPos(e.clientX); });
+  stage.addEventListener("pointerdown", e => { stage.classList.add("comparing"); setPos(e.clientX); });
+  stage.addEventListener("pointerleave", () => { stage.classList.remove("comparing"); stage.style.setProperty("--pos", "0%"); });
+
+  // ---------- 배경색 ----------
+  function applyBg() {
+    $("cutLayer").style.background = bgColor || "transparent";
+  }
+  function selectSwatch(el, color) {
+    document.querySelectorAll(".sw").forEach(s => s.classList.remove("active"));
+    el.classList.add("active");
+    bgColor = color;
+    applyBg();
+  }
+  document.querySelectorAll(".sw[data-color]").forEach(sw => {
+    sw.onclick = () => selectSwatch(sw, sw.dataset.color);
+  });
+  $("customColor").oninput = (e) => {
+    const label = e.target.parentElement;
+    label.style.background = e.target.value;
+    selectSwatch(label, e.target.value);
+  };
+
+  // ---------- 다운로드 ----------
+  $("downloadBtn").onclick = async () => {
+    if (!cutBitmap) return;
+    let blob = cutBlob, ext = "png";
+    if (bgColor) {
+      const c = document.createElement("canvas");
+      c.width = cutBitmap.width; c.height = cutBitmap.height;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(cutBitmap, 0, 0);
+      blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.95));
+      ext = "jpg";
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${baseName}_배경제거.${ext}`;
+    a.click();
+  };
+
+  $("againBtn").onclick = () => {
+    cutBlob = null; cutBitmap = null;
+    selectSwatch(document.querySelector(".sw.trans"), "");
+    show("hero");
+  };
+</script>
+</body>
+</html>
